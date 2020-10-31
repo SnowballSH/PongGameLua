@@ -56,7 +56,7 @@ function love.load()
     WIN_HEIGHT,
     {
       fullscreen = false,
-      resizable = false,
+      resizable = true,
       vsync = true
     }
   )
@@ -81,27 +81,45 @@ function love.load()
   ------------------------
   ---- Initialization ----
   ------------------------
+  p1_score = 0
+  p2_score = 0
+
+  serving = 1
 
   -- 0: start
   -- 1: play
   game_state = 0
 end
 
+function love.resize(w, h)
+  push:resize(w, h)
+end
+
 function love.update(dt)
+  if game_state == 2 then
+    ball.dy = math.random(-50, 50)
+    if serving == 1 then
+      ball.dx = -math.random(100, 150)
+    else
+      ball.dx = math.random(100, 150)
+    end
+    game_state = 0
+  end
+
   if game_state == 1 then
     if ball:collides(p1) then
       ball.dx = -ball.dx * RATE
-      ball.x = p1.x + 5
+      ball.x = p1.x + PADDLE_WIDTH
 
       if ball.dy < 0 then
-        ball.dy = -math.random(10, 150)
-      else
         ball.dy = math.random(10, 150)
+      else
+        ball.dy = -math.random(10, 150)
       end
     end
     if ball:collides(p2) then
       ball.dx = -ball.dx * RATE
-      ball.x = p2.x - 4
+      ball.x = p2.x - BALL_SIZE
 
       if ball.dy < 0 then
         ball.dy = -math.random(10, 150)
@@ -115,10 +133,24 @@ function love.update(dt)
       ball.dy = -ball.dy
     end
 
-    if ball.y >= V_HEIGHT - 4 then
-      ball.y = V_HEIGHT - 4
+    if ball.y >= V_HEIGHT - BALL_SIZE then
+      ball.y = V_HEIGHT - BALL_SIZE
       ball.dy = -ball.dy
     end
+  end
+
+  if ball.x < 0 then
+    serving = 1
+    p2_score = p2_score + 1
+    ball:reset()
+    game_state = 2
+  end
+
+  if ball.x > V_WIDTH then
+    serving = 2
+    p1_score = p1_score + 1
+    ball:reset()
+    game_state = 2
   end
 
   if love.keyboard.isDown("w") then
@@ -166,9 +198,7 @@ function love.draw()
 
   love.graphics.setFont(retro_small)
   if game_state == 0 then
-    love.graphics.printf("Hello Start State!", 0, 20, V_WIDTH, "center")
-  else
-    love.graphics.printf("Hello Play State!", 0, 20, V_WIDTH, "center")
+    love.graphics.printf("Player " .. tostring(serving) .. " now serving", 0, 20, V_WIDTH, "center")
   end
 
   p1:render()
@@ -178,12 +208,19 @@ function love.draw()
 
   displayFPS()
 
+  love.graphics.setColor(0.2, 0.2, 1, 0.7)
+  love.graphics.print("P1", V_WIDTH / 2 - 47, V_HEIGHT / 3)
+  love.graphics.print("P2", V_WIDTH / 2 + 33, V_HEIGHT / 3)
+  love.graphics.setFont(retro_big)
+  love.graphics.print(tostring(p1_score), V_WIDTH / 2 - 50, V_HEIGHT / 3 + 10)
+  love.graphics.print(tostring(p2_score), V_WIDTH / 2 + 30, V_HEIGHT / 3 + 10)
+
   -- end rendering at V resolution
   push:apply("end")
 end
 
 function displayFPS()
   love.graphics.setFont(retro_small)
-  love.graphics.setColor(0, 0.8, 0, 0.6)
+  love.graphics.setColor(0.1, 0.8, 0.1, 0.6)
   love.graphics.print("FPS: " .. tostring(love.timer.getFPS()), 10, 10)
 end
