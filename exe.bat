@@ -1,0 +1,1 @@
+start ./executable/love.exe ./executable/SuperGame.love
