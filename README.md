@@ -2,4 +2,4 @@
 
 ### To run the batch executable in **Windows 64 bit**, do
 
-`./exe.bat`
+`start ./exe.bat`
